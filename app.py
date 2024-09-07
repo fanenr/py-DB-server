@@ -11,11 +11,15 @@ conn_info = {
 }
 
 
-class Code(Enum):
+class Res(Enum):
     OK = 0
     INTERNAL = 1
     DUPLICATE = 2
-    FIELD_INCOMPLETE = 3
+    INCOMPLETE = 3
+
+
+def res_wrap(res):
+    return {"code": res.value, "data": res.name}
 
 
 app = Flask(__name__)
@@ -29,56 +33,44 @@ def data_check(data, *fields):
     return True
 
 
-def res_wrap(code):
-    return {"code": code.value, "data": code.name}
-
-
 @app.route("/teacher/reg", methods=["POST"])
 def teacher_reg():
     data = request.form
     if not data_check(data, "name", "username", "password"):
-        return res_wrap(Code.FIELD_INCOMPLETE)
+        return res_wrap(Res.INCOMPLETE)
 
     try:
-        with conn.execute(
-            "INSERT INTO teacher (name, username, password) VALUES (%s, %s, %s)",
-            (data["name"], data["username"], data["password"]),
-        ):
-            conn.commit()
+        sql = "INSERT INTO teacher (name, username, password) VALUES (%s, %s, %s)"
+        value = (data["name"], data["username"], data["password"])
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(sql, value)
     except psycopg.IntegrityError:
-        conn.rollback()
-        return res_wrap(Code.DUPLICATE)
-    except psycopg.Error:
-        conn.rollback()
-        return res_wrap(Code.INTERNAL)
+        return res_wrap(Res.DUPLICATE)
     except Exception:
-        return res_wrap(Code.INTERNAL)
+        return res_wrap(Res.INTERNAL)
 
-    return res_wrap(Code.OK)
+    return res_wrap(Res.OK)
 
 
 @app.route("/student/reg", methods=["POST"])
 def student_reg():
     data = request.form
-    if not data_check(data, "name", "username", "password", "semester"):
-        return res_wrap(Code.FIELD_INCOMPLETE)
+    if not data_check(data, "name", "start", "username", "password"):
+        return res_wrap(Res.INCOMPLETE)
 
     try:
-        with conn.execute(
-            "INSERT INTO student (name, username, password, semester) VALUES (%s, %s, %s, %s)",
-            (data["name"], data["username"], data["password"], int(data["semester"])),
-        ):
-            conn.commit()
+        sql = "INSERT INTO student (name, start, username, password) VALUES (%s, %s, %s, %s)"
+        value = (data["name"], data["start"], data["username"], data["password"])
+        with conn.transaction():
+            with conn.cursor() as cur:
+                cur.execute(sql, value)
     except psycopg.IntegrityError:
-        conn.rollback()
-        return res_wrap(Code.DUPLICATE)
-    except psycopg.Error:
-        conn.rollback()
-        return res_wrap(Code.INTERNAL)
+        return res_wrap(Res.DUPLICATE)
     except Exception:
-        return res_wrap(Code.INTERNAL)
+        return res_wrap(Res.INTERNAL)
 
-    return res_wrap(Code.OK)
+    return res_wrap(Res.OK)
 
 
 if __name__ == "__main__":

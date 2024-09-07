@@ -1,29 +1,29 @@
-CREATE TABLE teacher (
+CREATE TABLE IF NOT EXISTS teacher (
   id serial PRIMARY KEY,
   username varchar UNIQUE NOT NULL,
   password varchar NOT NULL,
   name varchar NOT NULL
 );
 
-CREATE TABLE student (
+CREATE TABLE IF NOT EXISTS student (
   id serial PRIMARY KEY,
   username varchar UNIQUE NOT NULL,
   password varchar NOT NULL,
-  semester integer NOT NULL,
-  name varchar NOT NULL
+  name varchar NOT NULL,
+  start date NOT NULL
 );
 
-CREATE TABLE course (
+CREATE TABLE IF NOT EXISTS course (
   id serial PRIMARY KEY,
   tid integer REFERENCES teacher (id),
-  semester integer NOT NULL,
-  name varchar NOT NULL
+  name varchar NOT NULL,
+  start date NOT NULL
 );
 
-CREATE TABLE grade (
+CREATE TABLE IF NOT EXISTS grade (
   id serial PRIMARY KEY,
+  cid integer REFERENCES course (id),
   sid integer REFERENCES student (id),
   tid integer REFERENCES teacher (id),
-  cid integer REFERENCES course (id),
-  score integer
+  score integer CHECK (score BETWEEN 0 AND 100)
 );
