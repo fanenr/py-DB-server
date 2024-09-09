@@ -47,13 +47,14 @@ def teacher_reg():
         sql = "INSERT INTO teacher (name, username, password) VALUES (%s, %s, %s)"
         value = (data["name"], data["username"], data["password"])
         with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute(sql, value)
+            cur = conn.cursor()
+            cur.execute(sql, value)
     except psycopg.IntegrityError:
         return res_wrap(Res.DUPLICATE)
     except Exception:
         return res_wrap(Res.INTERNAL)
 
+    cur.close()
     return res_wrap(Res.OK)
 
 
@@ -67,13 +68,14 @@ def student_reg():
         sql = "INSERT INTO student (name, start, username, password) VALUES (%s, %s, %s, %s)"
         value = (data["name"], data["start"], data["username"], data["password"])
         with conn.transaction():
-            with conn.cursor() as cur:
-                cur.execute(sql, value)
+            cur = conn.cursor()
+            cur.execute(sql, value)
     except psycopg.IntegrityError:
         return res_wrap(Res.DUPLICATE)
     except Exception:
         return res_wrap(Res.INTERNAL)
 
+    cur.close()
     return res_wrap(Res.OK)
 
 
@@ -87,17 +89,20 @@ def teacher_log():
         sql = "SELECT * FROM teacher WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
-            with conn.cursor(row_factory=dict_row) as cur:
-                cur.execute(sql, value)
-                if not (user := cur.fetchone()):
-                    return res_wrap(Res.NOUSER)
-                if data["password"] != user["password"]:
-                    return res_wrap(Res.WRONGPASSWD)
-                del user["username"]
-                del user["password"]
-    except Exception as e:
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
         return res_wrap(Res.INTERNAL)
 
+    if not (user := cur.fetchone()):
+        return res_wrap(Res.NOUSER)
+    if data["password"] != user["password"]:
+        return res_wrap(Res.WRONGPASSWD)
+
+    del user["username"]
+    del user["password"]
+
+    cur.close()
     return res_wrap(Res.OK, user)
 
 
@@ -111,17 +116,20 @@ def student_log():
         sql = "SELECT * FROM student WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
-            with conn.cursor(row_factory=dict_row) as cur:
-                cur.execute(sql, value)
-                if not (user := cur.fetchone()):
-                    return res_wrap(Res.NOUSER)
-                if data["password"] != user["password"]:
-                    return res_wrap(Res.WRONGPASSWD)
-                del user["username"]
-                del user["password"]
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
     except Exception:
         return res_wrap(Res.INTERNAL)
 
+    if not (user := cur.fetchone()):
+        return res_wrap(Res.NOUSER)
+    if data["password"] != user["password"]:
+        return res_wrap(Res.WRONGPASSWD)
+
+    del user["username"]
+    del user["password"]
+
+    cur.close()
     return res_wrap(Res.OK, user)
 
 
