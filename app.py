@@ -1,7 +1,9 @@
-from flask import Flask, request
-from enum import Enum
 import psycopg
+from enum import Enum
+from flask import Flask, request
 from psycopg.rows import dict_row
+from passlib.context import CryptContext
+
 
 conn_info = {
     "user": "arthur",
@@ -28,6 +30,15 @@ def res_wrap(res, data=None):
 
 app = Flask(__name__)
 conn = psycopg.connect(**conn_info)
+pwd = CryptContext(schemes=["bcrypt"])
+
+
+def pwd_hash(secret):
+    return pwd.hash(secret)
+
+
+def pwd_check(secret, hash):
+    return pwd.verify(secret, hash)
 
 
 def data_check(data, *fields):
@@ -45,7 +56,7 @@ def teacher_reg():
 
     try:
         sql = "INSERT INTO teacher (name, username, password) VALUES (%s, %s, %s)"
-        value = (data["name"], data["username"], data["password"])
+        value = (data["name"], data["username"], pwd_hash(data["password"]))
         with conn.transaction():
             cur = conn.cursor()
             cur.execute(sql, value)
@@ -66,7 +77,12 @@ def student_reg():
 
     try:
         sql = "INSERT INTO student (name, start, username, password) VALUES (%s, %s, %s, %s)"
-        value = (data["name"], data["start"], data["username"], data["password"])
+        value = (
+            data["name"],
+            data["start"],
+            data["username"],
+            pwd_hash(data["password"]),
+        )
         with conn.transaction():
             cur = conn.cursor()
             cur.execute(sql, value)
@@ -96,7 +112,7 @@ def teacher_log():
 
     if not (user := cur.fetchone()):
         return res_wrap(Res.NOUSER)
-    if data["password"] != user["password"]:
+    if not pwd_check(data["password"], user["password"]):
         return res_wrap(Res.WRONGPASSWD)
 
     del user["username"]
@@ -123,7 +139,7 @@ def student_log():
 
     if not (user := cur.fetchone()):
         return res_wrap(Res.NOUSER)
-    if data["password"] != user["password"]:
+    if not pwd_check(data["password"], user["password"]):
         return res_wrap(Res.WRONGPASSWD)
 
     del user["username"]
