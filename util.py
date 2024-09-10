@@ -1,4 +1,4 @@
-def data_check(data, *fields):
+def check(data, *fields):
     for f in fields:
         if not data.get(f):
             return False
