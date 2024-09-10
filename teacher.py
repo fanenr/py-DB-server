@@ -14,7 +14,7 @@ bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 
 
 @bp.route("/reg", methods=["POST"])
-def teacher_reg():
+def reg():
     data = request.form
     if not util.check(data, "name", "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -35,7 +35,7 @@ def teacher_reg():
 
 
 @bp.route("/log", methods=["POST"])
-def teacher_log():
+def log():
     data = request.form
     if not util.check(data, "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -62,6 +62,46 @@ def teacher_log():
 
     cur.close()
     return info
+
+
+@bp.route("/list", methods=["GET"])
+@jwt_required(optional=False)
+def course_list():
+    try:
+        sql = "SELECT * FROM course WHERE tid = %s"
+        value = (get_jwt_identity(),)
+        with conn.transaction():
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    all = cur.fetchall()
+
+    cur.close()
+    return all
+
+
+@bp.route("/new", methods=["POST"])
+@jwt_required(optional=False)
+def course_new():
+    data = request.form
+    if not util.check(data, "name", "start"):
+        return util.badreq("The parameters are incomplete")
+
+    try:
+        sql = "INSERT INTO course (tid, name, start) VALUES (%s, %s, %s)"
+        value = (get_jwt_identity(), data["name"], data["start"])
+        with conn.transaction():
+            cur = conn.cursor()
+            cur.execute(sql, value)
+    except psycopg.IntegrityError:
+        return util.conflict("The course already exists")
+    except Exception:
+        return util.internal("Internal error")
+
+    cur.close()
+    return "ok"
 
 
 @bp.route("/test")

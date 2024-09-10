@@ -14,7 +14,7 @@ bp = Blueprint("student", __name__, url_prefix="/student")
 
 
 @bp.route("/reg", methods=["POST"])
-def student_reg():
+def reg():
     data = request.form
     if not util.check(data, "name", "start", "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -40,7 +40,7 @@ def student_reg():
 
 
 @bp.route("/log", methods=["POST"])
-def student_log():
+def log():
     data = request.form
     if not util.check(data, "username", "password"):
         return util.badreq("The parameters are incomplete")

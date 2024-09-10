@@ -1,29 +1,35 @@
+DROP TABLE IF EXISTS teacher CASCADE;
+DROP TABLE IF EXISTS student CASCADE;
+DROP TABLE IF EXISTS course CASCADE;
+DROP TABLE IF EXISTS grade CASCADE;
+
 CREATE TABLE IF NOT EXISTS teacher (
-  id serial PRIMARY KEY,
-  username varchar UNIQUE NOT NULL,
-  password varchar NOT NULL,
-  name varchar NOT NULL
+  id SERIAL PRIMARY KEY,
+  username VARCHAR UNIQUE NOT NULL,
+  password VARCHAR NOT NULL,
+  name VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS student (
-  id serial PRIMARY KEY,
-  username varchar UNIQUE NOT NULL,
-  password varchar NOT NULL,
-  name varchar NOT NULL,
-  start date NOT NULL
+  id SERIAL PRIMARY KEY,
+  username VARCHAR UNIQUE NOT NULL,
+  password VARCHAR NOT NULL,
+  name VARCHAR NOT NULL,
+  start DATE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS course (
-  id serial PRIMARY KEY,
-  tid integer REFERENCES teacher (id),
-  name varchar NOT NULL,
-  start date NOT NULL
+  id SERIAL PRIMARY KEY,
+  tid INTEGER REFERENCES teacher (id),
+  name VARCHAR NOT NULL,
+  start DATE NOT NULL,
+  UNIQUE (tid, name)
 );
 
 CREATE TABLE IF NOT EXISTS grade (
-  id serial PRIMARY KEY,
-  cid integer REFERENCES course (id),
-  sid integer REFERENCES student (id),
-  tid integer REFERENCES teacher (id),
-  score integer CHECK (score BETWEEN 0 AND 100)
+  id SERIAL PRIMARY KEY,
+  cid INTEGER REFERENCES course (id),
+  sid INTEGER REFERENCES student (id),
+  tid INTEGER REFERENCES teacher (id),
+  score INTEGER CHECK (score BETWEEN 0 AND 100)
 );
