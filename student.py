@@ -46,7 +46,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT * FROM student WHERE username = %s"
+        sql = "SELECT id, name, start FROM student WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
@@ -59,14 +59,52 @@ def log():
     if not pwd.verify(data["password"], info["password"]):
         return util.unauth("Wrong username or password")
 
-    del info["username"]
-    del info["password"]
-
     access_token = create_access_token(info["id"])
     info["access_token"] = access_token
 
     cur.close()
     return info
+
+
+@bp.route("/list", methods=["GET"])
+@jwt_required(optional=False)
+def course_list():
+    try:
+        sql = """SELECT g.id AS id, score, c.name AS course, t.name AS teacher
+                 FROM grade AS g JOIN course AS c ON cid = c.id
+                 JOIN teacher AS t ON tid = t.id
+                 WHERE sid = %s"""
+        value = (get_jwt_identity(),)
+        with conn.transaction():
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    all = cur.fetchall()
+
+    cur.close()
+    return all
+
+
+@bp.route("/take", methods=["POST"])
+@jwt_required(optional=False)
+def course_take():
+    data = request.form
+    if not util.check(data, "cid"):
+        return util.badreq("The parameters are incomplete")
+
+    try:
+        sql = "INSERT INTO grade (sid, cid) VALUES (%s, %s)"
+        value = (get_jwt_identity(), int(data["cid"]))
+        with conn.transaction():
+            cur = conn.cursor()
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    cur.close()
+    return "ok"
 
 
 @bp.route("/test")

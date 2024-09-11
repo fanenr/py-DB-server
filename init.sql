@@ -30,6 +30,5 @@ CREATE TABLE IF NOT EXISTS grade (
   id SERIAL PRIMARY KEY,
   cid INTEGER REFERENCES course (id),
   sid INTEGER REFERENCES student (id),
-  tid INTEGER REFERENCES teacher (id),
   score INTEGER CHECK (score BETWEEN 0 AND 100)
 );

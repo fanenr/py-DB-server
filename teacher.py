@@ -41,7 +41,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT * FROM teacher WHERE username = %s"
+        sql = "SELECT id, name FROM teacher WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
@@ -54,9 +54,6 @@ def log():
     if not pwd.verify(data["password"], info["password"]):
         return util.unauth("Wrong username or password")
 
-    del info["username"]
-    del info["password"]
-
     access_token = create_access_token(info["id"])
     info["access_token"] = access_token
 
@@ -68,7 +65,7 @@ def log():
 @jwt_required(optional=False)
 def course_list():
     try:
-        sql = "SELECT * FROM course WHERE tid = %s"
+        sql = "SELECT id, name, start FROM course WHERE tid = %s"
         value = (get_jwt_identity(),)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
