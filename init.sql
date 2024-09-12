@@ -28,7 +28,8 @@ CREATE TABLE IF NOT EXISTS course (
 
 CREATE TABLE IF NOT EXISTS grade (
   id SERIAL PRIMARY KEY,
-  cid INTEGER REFERENCES course (id),
-  sid INTEGER REFERENCES student (id),
-  score INTEGER CHECK (score BETWEEN 0 AND 100)
+  cid INTEGER NOT NULL REFERENCES course (id),
+  sid INTEGER NOT NULL REFERENCES student (id),
+  score INTEGER CHECK (score BETWEEN 0 AND 100),
+  UNIQUE (cid, sid)
 );

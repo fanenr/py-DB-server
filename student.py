@@ -46,7 +46,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT id, name, start FROM student WHERE username = %s"
+        sql = "SELECT id, name, start, password FROM student WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
@@ -61,6 +61,7 @@ def log():
 
     access_token = create_access_token(info["id"])
     info["access_token"] = access_token
+    del info["password"]
 
     cur.close()
     return info
@@ -100,6 +101,8 @@ def course_take():
         with conn.transaction():
             cur = conn.cursor()
             cur.execute(sql, value)
+    except psycopg.IntegrityError:
+        return util.conflict("Have taken the course")
     except Exception:
         return util.internal("Internal error")
 

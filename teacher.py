@@ -41,7 +41,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT id, name FROM teacher WHERE username = %s"
+        sql = "SELECT id, name, password FROM teacher WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
@@ -56,6 +56,7 @@ def log():
 
     access_token = create_access_token(info["id"])
     info["access_token"] = access_token
+    del info["password"]
 
     cur.close()
     return info
