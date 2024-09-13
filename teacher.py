@@ -102,8 +102,25 @@ def course_new():
     return "ok"
 
 
-@bp.route("/test")
-@jwt_required()
-def test():
-    id = get_jwt_identity()
-    return {"id": id}
+@bp.route("/grade", methods=["POST"])
+@jwt_required(optional=False)
+def course_grade():
+    data = request.form
+    if not util.check(data, "cid", "sid", "score"):
+        return util.badreq("The parameters are incomplete")
+
+    try:
+        sql = "UPDATE grade SET score = %s WHERE cid = %s AND sid = %s"
+        value = (int(data["score"]), int(data["cid"]), int(data["sid"]))
+        with conn.transaction():
+            cur = conn.cursor()
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    row = cur.rowcount
+    cur.close()
+
+    if row != 1:
+        return util.conflict("The course or student does not exist")
+    return "ok"

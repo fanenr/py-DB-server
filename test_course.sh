@@ -9,12 +9,15 @@ http -f :5000/teacher/new \
 http :5000/teacher/list \
     "$teacher_header"
 
+http -f :5000/teacher/grade \
+    cid='1' sid='1' score='80' \
+    "$teacher_header"
+
 student_token=$(cat student.token)
 student_header="Authorization: Bearer $student_token"
 
 http -f :5000/student/take \
-    cid='1' \
-    "$student_header"
+    cid='1' "$student_header"
 
 http :5000/student/list \
     "$student_header"

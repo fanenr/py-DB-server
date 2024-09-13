@@ -108,10 +108,3 @@ def course_take():
 
     cur.close()
     return "ok"
-
-
-@bp.route("/test")
-@jwt_required()
-def test():
-    id = get_jwt_identity()
-    return {"id": id}
