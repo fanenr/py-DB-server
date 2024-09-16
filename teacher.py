@@ -62,24 +62,6 @@ def log():
     return info
 
 
-@bp.route("/list", methods=["GET"])
-@jwt_required(optional=False)
-def course_list():
-    try:
-        sql = "SELECT id, name, start FROM course WHERE tid = %s"
-        value = (get_jwt_identity(),)
-        with conn.transaction():
-            cur = conn.cursor(row_factory=dict_row)
-            cur.execute(sql, value)
-    except Exception:
-        return util.internal("Internal error")
-
-    all = cur.fetchall()
-
-    cur.close()
-    return all
-
-
 @bp.route("/new", methods=["POST"])
 @jwt_required(optional=False)
 def course_new():
@@ -100,6 +82,24 @@ def course_new():
 
     cur.close()
     return "ok"
+
+
+@bp.route("/list", methods=["GET"])
+@jwt_required(optional=False)
+def course_list():
+    try:
+        sql = "SELECT id, name, start FROM course WHERE tid = %s"
+        value = (get_jwt_identity(),)
+        with conn.transaction():
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    all = cur.fetchall()
+
+    cur.close()
+    return all
 
 
 @bp.route("/grade", methods=["POST"])

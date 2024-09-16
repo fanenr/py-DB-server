@@ -46,7 +46,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT id, name, start, password FROM student WHERE username = %s"
+        sql = "SELECT id, name, password FROM student WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
@@ -71,14 +71,11 @@ def log():
 @jwt_required(optional=False)
 def course_list():
     try:
-        sql = """SELECT g.id AS id, score, c.name AS course, t.name AS teacher
-                 FROM grade AS g JOIN course AS c ON cid = c.id
-                 JOIN teacher AS t ON tid = t.id
-                 WHERE sid = %s"""
-        value = (get_jwt_identity(),)
+        sql = """SELECT c.id AS id, c.name AS name, start, t.name AS teacher
+                 FROM course AS c JOIN teacher AS t ON c.tid = t.id"""
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
-            cur.execute(sql, value)
+            cur.execute(sql)
     except Exception:
         return util.internal("Internal error")
 
@@ -108,3 +105,24 @@ def course_take():
 
     cur.close()
     return "ok"
+
+
+@bp.route("/grade", methods=["GET"])
+@jwt_required(optional=False)
+def course_grade():
+    try:
+        sql = """SELECT g.id AS id, score, c.name AS course, t.name AS teacher
+                 FROM grade AS g JOIN course AS c ON cid = c.id
+                 JOIN teacher AS t ON tid = t.id
+                 WHERE sid = %s"""
+        value = (get_jwt_identity(),)
+        with conn.transaction():
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    all = cur.fetchall()
+
+    cur.close()
+    return all
