@@ -59,8 +59,8 @@ def log():
     if not pwd.verify(data["password"], info["password"]):
         return util.unauth("Wrong username or password")
 
-    access_token = create_access_token(info["id"])
-    info["access_token"] = access_token
+    token = create_access_token(info["id"])
+    info["token"] = token
     del info["password"]
 
     cur.close()
