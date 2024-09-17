@@ -1,7 +1,18 @@
 from ext import jwt
 from flask import Flask
 from flask_cors import CORS
-from datetime import timedelta
+from datetime import date, timedelta
+from flask.json.provider import DefaultJSONProvider
+from flask.json.provider import _default as json_default
+
+
+def json_custom(o):
+    if isinstance(o, date):
+        return o.isoformat()
+    return json_default(o)
+
+
+DefaultJSONProvider.default = staticmethod(json_custom)
 
 
 def app_init():
@@ -24,3 +35,14 @@ def app_init():
 if __name__ == "__main__":
     app = app_init()
     app.run()
+
+
+# class JSONProvider(DefaultJSONProvider):
+#     @staticmethod
+#     def custom(o):
+#         if isinstance(o, date):
+#             return o.isoformat()
+#         return DefaultJSONProvider.default(o)
+#     default = custom
+
+# app.json = JSONProvider(app)
