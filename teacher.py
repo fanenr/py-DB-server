@@ -16,12 +16,17 @@ bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 @bp.route("/reg", methods=["POST"])
 def reg():
     data = request.form
-    if not util.check(data, "name", "username", "password"):
+    if not util.check(data, "name", "start", "username", "password"):
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "INSERT INTO teacher (name, username, password) VALUES (%s, %s, %s)"
-        value = (data["name"], data["username"], pwd.hash(data["password"]))
+        sql = "INSERT INTO teacher (name, start, username, password) VALUES (%s, %s, %s, %s)"
+        value = (
+            data["name"],
+            data["start"],
+            data["username"],
+            pwd.hash(data["password"]),
+        )
         with conn.transaction():
             cur = conn.cursor()
             cur.execute(sql, value)
@@ -41,7 +46,7 @@ def log():
         return util.badreq("The parameters are incomplete")
 
     try:
-        sql = "SELECT id, name, password FROM teacher WHERE username = %s"
+        sql = "SELECT id, name, start, password FROM teacher WHERE username = %s"
         value = (data["username"],)
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
