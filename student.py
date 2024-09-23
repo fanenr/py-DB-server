@@ -71,7 +71,7 @@ def log():
 @jwt_required(optional=False)
 def course_list():
     try:
-        sql = """SELECT c.id AS id, c.name AS name, start, t.name AS teacher
+        sql = """SELECT c.id AS id, c.name AS name, c.start AS start, t.name AS teacher
                  FROM course AS c JOIN teacher AS t ON c.tid = t.id"""
         with conn.transaction():
             cur = conn.cursor(row_factory=dict_row)
