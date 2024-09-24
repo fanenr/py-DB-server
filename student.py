@@ -111,7 +111,7 @@ def course_take():
 @jwt_required(optional=False)
 def course_grade():
     try:
-        sql = """SELECT g.id AS id, score, c.name AS course, t.name AS teacher
+        sql = """SELECT g.id AS id, score, c.name AS course, t.name AS name
                  FROM grade AS g JOIN course AS c ON cid = c.id
                  JOIN teacher AS t ON tid = t.id
                  WHERE sid = %s"""

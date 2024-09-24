@@ -89,6 +89,30 @@ def course_new():
     return "ok"
 
 
+@bp.route("/mark", methods=["POST"])
+@jwt_required(optional=False)
+def course_mark():
+    data = request.form
+    if not util.check(data, "gid", "score"):
+        return util.badreq("The parameters are incomplete")
+
+    try:
+        sql = "UPDATE grade SET score = %s WHERE id = %s"
+        value = (int(data["score"]), int(data["gid"]))
+        with conn.transaction():
+            cur = conn.cursor()
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    row = cur.rowcount
+    cur.close()
+
+    if row != 1:
+        return util.conflict("The course or student does not exist")
+    return "ok"
+
+
 @bp.route("/list", methods=["GET"])
 @jwt_required(optional=False)
 def course_list():
@@ -107,25 +131,22 @@ def course_list():
     return all
 
 
-@bp.route("/grade", methods=["POST"])
+@bp.route("/grade", methods=["GET"])
 @jwt_required(optional=False)
 def course_grade():
-    data = request.form
-    if not util.check(data, "cid", "sid", "score"):
-        return util.badreq("The parameters are incomplete")
-
     try:
-        sql = "UPDATE grade SET score = %s WHERE cid = %s AND sid = %s"
-        value = (int(data["score"]), int(data["cid"]), int(data["sid"]))
+        sql = """SELECT g.id AS id, score, c.name AS course, s.name AS name
+                 FROM grade AS g JOIN course AS c ON g.cid = c.id
+                 JOIN student AS s ON g.sid = s.id
+                 WHERE tid = %s"""
+        value = (get_jwt_identity(),)
         with conn.transaction():
-            cur = conn.cursor()
+            cur = conn.cursor(row_factory=dict_row)
             cur.execute(sql, value)
     except Exception:
         return util.internal("Internal error")
 
-    row = cur.rowcount
-    cur.close()
+    all = cur.fetchall()
 
-    if row != 1:
-        return util.conflict("The course or student does not exist")
-    return "ok"
+    cur.close()
+    return all
