@@ -13,8 +13,8 @@ from flask_jwt_extended import create_access_token
 bp = Blueprint("student", __name__, url_prefix="/student")
 
 
-@bp.route("/reg", methods=["POST"])
-def reg():
+@bp.route("/register", methods=["POST"])
+def register():
     data = request.form
     if not util.check(data, "name", "start", "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -39,8 +39,8 @@ def reg():
     return "ok"
 
 
-@bp.route("/log", methods=["POST"])
-def log():
+@bp.route("/login", methods=["POST"])
+def login():
     data = request.form
     if not util.check(data, "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -67,7 +67,7 @@ def log():
     return info
 
 
-@bp.route("/list", methods=["GET"])
+@bp.route("/course/list", methods=["GET"])
 @jwt_required(optional=False)
 def course_list():
     try:
@@ -85,7 +85,7 @@ def course_list():
     return all
 
 
-@bp.route("/take", methods=["POST"])
+@bp.route("/course/take", methods=["POST"])
 @jwt_required(optional=False)
 def course_take():
     data = request.form
@@ -107,9 +107,9 @@ def course_take():
     return "ok"
 
 
-@bp.route("/grade", methods=["GET"])
+@bp.route("/grade/list", methods=["GET"])
 @jwt_required(optional=False)
-def course_grade():
+def grade_list():
     try:
         sql = """SELECT g.id AS id, score, c.name AS course, t.name AS name
                  FROM grade AS g JOIN course AS c ON cid = c.id

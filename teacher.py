@@ -13,8 +13,8 @@ from flask_jwt_extended import create_access_token
 bp = Blueprint("teacher", __name__, url_prefix="/teacher")
 
 
-@bp.route("/reg", methods=["POST"])
-def reg():
+@bp.route("/register", methods=["POST"])
+def register():
     data = request.form
     if not util.check(data, "name", "start", "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -39,8 +39,8 @@ def reg():
     return "ok"
 
 
-@bp.route("/log", methods=["POST"])
-def log():
+@bp.route("/login", methods=["POST"])
+def login():
     data = request.form
     if not util.check(data, "username", "password"):
         return util.badreq("The parameters are incomplete")
@@ -67,9 +67,9 @@ def log():
     return info
 
 
-@bp.route("/new", methods=["POST"])
+@bp.route("/course/create", methods=["POST"])
 @jwt_required(optional=False)
-def course_new():
+def course_create():
     data = request.form
     if not util.check(data, "name", "start"):
         return util.badreq("The parameters are incomplete")
@@ -89,9 +89,27 @@ def course_new():
     return "ok"
 
 
-@bp.route("/mark", methods=["POST"])
+@bp.route("/course/list", methods=["GET"])
 @jwt_required(optional=False)
-def course_mark():
+def course_list():
+    try:
+        sql = "SELECT id, name, start FROM course WHERE tid = %s"
+        value = (get_jwt_identity(),)
+        with conn.transaction():
+            cur = conn.cursor(row_factory=dict_row)
+            cur.execute(sql, value)
+    except Exception:
+        return util.internal("Internal error")
+
+    all = cur.fetchall()
+
+    cur.close()
+    return all
+
+
+@bp.route("/grade/update", methods=["POST"])
+@jwt_required(optional=False)
+def grade_update():
     data = request.form
     if not util.check(data, "gid", "score"):
         return util.badreq("The parameters are incomplete")
@@ -113,27 +131,9 @@ def course_mark():
     return "ok"
 
 
-@bp.route("/list", methods=["GET"])
+@bp.route("/grade/list", methods=["GET"])
 @jwt_required(optional=False)
-def course_list():
-    try:
-        sql = "SELECT id, name, start FROM course WHERE tid = %s"
-        value = (get_jwt_identity(),)
-        with conn.transaction():
-            cur = conn.cursor(row_factory=dict_row)
-            cur.execute(sql, value)
-    except Exception:
-        return util.internal("Internal error")
-
-    all = cur.fetchall()
-
-    cur.close()
-    return all
-
-
-@bp.route("/grade", methods=["GET"])
-@jwt_required(optional=False)
-def course_grade():
+def grade_list():
     try:
         sql = """SELECT g.id AS id, score, c.name AS course, s.name AS name
                  FROM grade AS g JOIN course AS c ON g.cid = c.id
