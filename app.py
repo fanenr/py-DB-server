@@ -6,12 +6,7 @@ from flask.json.provider import DefaultJSONProvider
 from flask.json.provider import _default as json_default
 
 
-def json_custom(o):
-    if isinstance(o, date):
-        return o.isoformat()
-    return json_default(o)
-
-
+json_custom = lambda o: o.isoformat() if isinstance(o, date) else json_default(o)
 DefaultJSONProvider.default = staticmethod(json_custom)
 
 
