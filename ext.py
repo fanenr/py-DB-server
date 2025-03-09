@@ -11,6 +11,6 @@ conn = psycopg.connect(
     port=5432,
     user="arthur",
     host="localhost",
-    password="12345",
     dbname="postgres",
+    password="12345678",
 )
